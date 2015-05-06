@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string name="app_name">Megu cybernetics</string>
+    <string-array name="section">
+       <item>Денне відалення </item>
+       <item>Заочне відділення</item>
+    </string-array>
+
+    <string-array name="mainMenu">
+        <item>Головна сторінка</item>
+        <item>Розклад</item>
+        <item>Абітурієнту</item>
+        <item>Виховна робота</item>
+        <item>Кафедри факультету</item>
+        <item>Контактна форма</item>
+        <item>Наукова робота</item>
+        <item>Про факультет</item>
+    </string-array>
+
+</resources>
