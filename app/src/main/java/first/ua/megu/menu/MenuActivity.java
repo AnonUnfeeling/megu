@@ -1,10 +1,7 @@
 package first.ua.megu.menu;
 
 import android.app.Activity;
-import android.content.Context;
 import android.content.Intent;
-import android.net.ConnectivityManager;
-import android.net.NetworkInfo;
 import android.net.Uri;
 import android.os.Bundle;
 import android.view.View;
@@ -52,27 +49,23 @@ public class MenuActivity extends Activity{
                         createNewViewSite(KEY_FOR_HOME_PAGE);
                         break;
                     case 1:
-                            if(isOnline()==true) {
-                                if(workingWithFile.readFile(pathForSection).equals("denne")){
-                                    new ParsingLinkForTask().execute(urlForDenne);
-                                    url = workingWithFile.readFile(pathForTask);
-                                    if(url!=null) {
-                                        showTask(url);
-                                    }else {
-                                        Toast.makeText(getApplicationContext(), "Розклад відсутній", Toast.LENGTH_LONG).show();
-                                    }
-                                }else if(workingWithFile.readFile(pathForSection).equals("zaochne")){
-                                    new ParsingLinkForTask().execute(urlForZaochne);
-                                    url = workingWithFile.readFile(pathForTask);
-                                    if(url!=null) {
-                                        showTask(url);
-                                    }else {
-                                        Toast.makeText(getApplicationContext(), "Розклад відсутній", Toast.LENGTH_LONG).show();
-                                    }
+                        if (workingWithFile.readFile(pathForSection).equals("denne")) {
+                                new UpdataTask().execute(urlForDenne);
+                                url = workingWithFile.readFile(pathForTask);
+                                if (url != null) {
+                                    showTask(url);
+                                } else {
+                                    Toast.makeText(getApplicationContext(), "Розклад відсутній", Toast.LENGTH_LONG).show();
                                 }
-                            }else{
-                                noOnline();
+                            } else if (workingWithFile.readFile(pathForSection).equals("zaochne")) {
+                            new UpdataTask().execute(urlForZaochne);
+                            url = workingWithFile.readFile(pathForTask);
+                            if (url != null) {
+                                showTask(url);
+                            } else {
+                                Toast.makeText(getApplicationContext(), "Розклад відсутній", Toast.LENGTH_LONG).show();
                             }
+                        }
                         break;
                     case 2:
                         createNewViewSite(KEY_FOR_APPLICANT);
@@ -108,19 +101,5 @@ public class MenuActivity extends Activity{
         intent.setClass(getApplicationContext(),ViewSite.class);
         intent.setFlags(key);
         startActivity(intent);
-    }
-
-    public boolean isOnline() {
-        ConnectivityManager connectivityManager = (ConnectivityManager)
-                getSystemService(Context.CONNECTIVITY_SERVICE );
-        NetworkInfo activeNetInfo = connectivityManager.getNetworkInfo(ConnectivityManager.TYPE_MOBILE);
-        boolean isConnected = activeNetInfo != null && activeNetInfo.isConnectedOrConnecting();
-        if (!isConnected)
-            return true;
-        else return false;
-    }
-
-    public void noOnline(){
-        Toast.makeText(getApplicationContext(), "Відсутній доступ до мережі", Toast.LENGTH_SHORT).show();
     }
 }

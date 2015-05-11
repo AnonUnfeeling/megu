@@ -4,7 +4,6 @@ import android.app.Activity;
 import android.os.Bundle;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
-
 import first.ua.megu.R;
 
 public class ViewSite extends Activity{
@@ -33,15 +32,6 @@ public class ViewSite extends Activity{
             @Override
             public boolean shouldOverrideUrlLoading(WebView view, String url) {
                 return super.shouldOverrideUrlLoading(view, url);
-            }
-
-            @Override
-            public void onPageFinished(WebView view, String url) {
-                view.loadUrl("javascript:document.getElementById('sidebar-primary').style.display = 'none';" +
-                        "javascript:document.getElementById('header').style.display = 'none';"+
-                        "javascript:document.getElementById('footer-widgets-container').style.display = 'none';"+
-                        "javascript:document.getElementById('respond').style.display = 'none';"+
-                        "javascript:document.getElementById('footer-container').style.display = 'none';");
             }
         });
     }

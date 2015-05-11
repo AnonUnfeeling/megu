@@ -6,16 +6,12 @@ import android.app.PendingIntent;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
-import android.net.ConnectivityManager;
-import android.net.NetworkInfo;
-import android.os.AsyncTask;
-import android.provider.Contacts;
-import android.util.Log;
-
+import android.net.Uri;
 import java.util.concurrent.ExecutionException;
-
+import first.ua.megu.connectstatus.ConnectStatus;
 import first.ua.megu.R;
 import first.ua.megu.file.WorkingWithFile;
+import first.ua.megu.menu.UpdataTask;
 
 public class NotificationReceiver extends BroadcastReceiver {
 
@@ -29,47 +25,43 @@ public class NotificationReceiver extends BroadcastReceiver {
     private String urlForZaochne = "http://lotyuk.ukrwest.net/zaochne-viddilennya.html";
     private String berofeLink = "";
     private String afterLink = "";
-    private UpdataTask updataTask = new UpdataTask();
+    private UpdataTask updataTask = new UpdataTask(1);
+    ConnectStatus connectStatus;
 
     @Override
     public void onReceive(Context context, Intent intent) {
-        if(isOnline(context)==true){
-             section = workingWithFile.readFile(pathForSection);
-            if(section!=null) {
-                if (section.equals("denne")) {
-                    berofeLink = workingWithFile.readFile(pathForTask);
-                    updataTask.execute(urlForDenne);
-                    try {
-                        afterLink = updataTask.get();
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
-                    } catch (ExecutionException e) {
-                        e.printStackTrace();
-                    }
-                    if (!afterLink.equals(berofeLink)) {
-                        workingWithFile.writeFile(pathForTask, afterLink);
+        connectStatus = new ConnectStatus();
+        if (!connectStatus.isOnline(context)) {
+            try {
+                section = workingWithFile.readFile(pathForSection);
+                if (section != null) {
+                    if (section.equals("denne") && isNewTask(urlForDenne)) {
                         showNotification(context);
-                    } else {
-                        Log.d("Log", "no updata");
-                    }
-                } else if (section.equals("zaochne")) {
-                    berofeLink = workingWithFile.readFile(pathForTask);
-                    updataTask.execute(urlForZaochne);
-                    try {
-                        afterLink = updataTask.get();
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
-                    } catch (ExecutionException e) {
-                        e.printStackTrace();
-                    }
-                    if (!afterLink.equals(berofeLink)) {
-                        workingWithFile.writeFile(pathForTask, afterLink);
+                    } else if (section.equals("zaochne") && isNewTask(urlForZaochne)) {
                         showNotification(context);
-                    } else {
-                        Log.d("Log", "no updata");
                     }
                 }
+            } catch (Exception ex) {
+                ex.printStackTrace();
             }
+        }
+    }
+
+    public boolean isNewTask(String url){
+        berofeLink = workingWithFile.readFile(pathForTask);
+        updataTask.execute(url);
+        try {
+            afterLink = updataTask.get();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        } catch (ExecutionException e) {
+            e.printStackTrace();
+        }
+        if (!afterLink.equals(berofeLink)) {
+            workingWithFile.writeFile(pathForTask, afterLink);
+            return true;
+        } else {
+            return false;
         }
     }
 
@@ -81,7 +73,7 @@ public class NotificationReceiver extends BroadcastReceiver {
                 "Мегу", System.currentTimeMillis());
 
         PendingIntent pendingIntentIntent = PendingIntent.getActivity(context, 0,
-                new Intent(Intent.ACTION_VIEW, Contacts.People.CONTENT_URI), 0);
+                new Intent(Intent.ACTION_VIEW, Uri.parse("http://docs.google.com/gview?embedded=true&url=http://lotyuk.ukrwest.net" + afterLink)), 0);
 
         notifyDetails.setLatestEventInfo(context, "Розклад",
                 "Розклад було обновлено", pendingIntentIntent);
@@ -92,14 +84,6 @@ public class NotificationReceiver extends BroadcastReceiver {
 
         notificationManager.notify(NOTFICATION_ID, notifyDetails);
     }
-
-    private boolean isOnline(Context context) {
-        ConnectivityManager connectivityManager = (ConnectivityManager)
-                context.getSystemService(Context.CONNECTIVITY_SERVICE );
-        NetworkInfo activeNetInfo = connectivityManager.getNetworkInfo(ConnectivityManager.TYPE_MOBILE);
-        boolean isConnected = activeNetInfo != null && activeNetInfo.isConnectedOrConnecting();
-        if (!isConnected)
-            return true;
-        else return false;
-    }
 }
+
+

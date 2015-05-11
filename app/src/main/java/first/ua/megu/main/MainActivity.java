@@ -6,16 +6,15 @@ import android.app.Dialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.net.ConnectivityManager;
-import android.net.NetworkInfo;
 import android.os.Environment;
 import android.os.Bundle;
 import android.widget.Toast;
 import java.io.File;
+import first.ua.megu.connectstatus.ConnectStatus;
 import first.ua.megu.R;
 import first.ua.megu.file.WorkingWithFile;
 import first.ua.megu.menu.MenuActivity;
-import first.ua.megu.menu.ParsingLinkForTask;
+import first.ua.megu.menu.UpdataTask;
 import first.ua.megu.receiver.NotificationReceiver;
 
 public class MainActivity extends Activity {
@@ -24,21 +23,31 @@ public class MainActivity extends Activity {
     private String pathForSection = "Section";
     private String urlForDenne = "http://lotyuk.ukrwest.net/denne-viddilennya.html";
     private String urlForZaochne = "http://lotyuk.ukrwest.net/zaochne-viddilennya.html";
-    Context context;
+    private Context context;
+    private ConnectStatus connectStatus;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        context=getApplication();
+        context = getApplication();
+        connectStatus = new ConnectStatus();
 
-        File file = new File(Environment.getExternalStorageDirectory().toString() + File.separator + pathForSection);
-        if (file.isFile()) {
-            finish();
-            startNewActivity();
-        } else {
-            showDialog(0);
-        }
+            try {
+                if (!connectStatus.isOnline(context)) {
+                    File file = new File(Environment.getExternalStorageDirectory().toString() + File.separator + pathForSection);
+                    if (file.isFile()) {
+                        finish();
+                        startNewActivity();
+                    } else {
+                        showDialog(0);
+                    }
+                }else {
+                    connectStatus.noOnline(context);
+                }
+            } catch (Exception ex) {
+                Toast.makeText(getApplicationContext(), "Невідома помилка, спробуйте перезапустити программу", Toast.LENGTH_SHORT).show();
+            }
     }
 
     void startNewActivity(){
@@ -56,25 +65,17 @@ public class MainActivity extends Activity {
                     @Override
                     public void onClick(DialogInterface dialog, int item) {
                         if(item==0){
-                            if(isOnline()==true) {
                                 workingWithFile.writeFile(pathForSection,"denne");
-                                new ParsingLinkForTask().execute(urlForDenne);
+                                new UpdataTask().execute(urlForDenne);
                                 context.sendBroadcast(new Intent(context, NotificationReceiver.class));
                                 finish();
                                 startNewActivity();
-                            }else {
-                                noOnline();
-                            }
                         }else {
-                            if(isOnline()==true) {
                                 workingWithFile.writeFile(pathForSection,"zaochne");
-                                new ParsingLinkForTask().execute(urlForZaochne);
+                                new UpdataTask().execute(urlForZaochne);
                                 context.sendBroadcast(new Intent(context, NotificationReceiver.class));
                                 finish();
                                 startNewActivity();
-                            }else {
-                                noOnline();
-                            }
                         }
                     }
                 });
@@ -83,19 +84,5 @@ public class MainActivity extends Activity {
             default:
                 return null;
         }
-    }
-
-    public boolean isOnline() {
-        ConnectivityManager connectivityManager = (ConnectivityManager)
-                getSystemService(Context.CONNECTIVITY_SERVICE );
-        NetworkInfo activeNetInfo = connectivityManager.getNetworkInfo(ConnectivityManager.TYPE_MOBILE);
-        boolean isConnected = activeNetInfo != null && activeNetInfo.isConnectedOrConnecting();
-        if (!isConnected)
-            return true;
-        else return false;
-    }
-
-    public void noOnline(){
-        Toast.makeText(getApplicationContext(), "Відсутній доступ до мережі", Toast.LENGTH_SHORT).show();
     }
 }
